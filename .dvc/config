@@ -1,0 +1,5 @@
+['remote "dataset-tracker"']
+    url = gs://model-dataset-tracker-course/dataset
+    credentialpath = /Users/giocrisraigodoy/Documents/ml_deploy_course/intro-deployment-ml/mlops-fundamentals-course-gio-7c9d2efba828.json
+['remote "model-tracker"']
+    url = gs://model-dataset-tracker-course/model
