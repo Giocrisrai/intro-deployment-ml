@@ -47,7 +47,7 @@ jobs:
       - name: Commit .dvc file changes
         run: |
           git config --local user.email "giocrisrai@gmail.com"
-          git config --local user.name "github-actions[bot]"
+          git config --local user.name "giocrisrai"
           git add model/model.pkl.dvc
           git commit -m "Updating model serialization by GitHub Actions"
       - uses: ad-m/github-push-action@master
