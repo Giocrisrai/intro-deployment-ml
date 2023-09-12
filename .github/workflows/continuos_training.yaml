@@ -1,4 +1,5 @@
 name: Continuos Training
+
 on:
   push:
     branches:
@@ -45,9 +46,9 @@ jobs:
         run: |
           dvc remote modify model-tracker credentialpath $(pwd)/path.json
 
-      - name: Pull model data
+      - name: Pull model data with verbose logging
         run: |
-          dvc pull model/model.pkl.dvc -r model-tracker
+          dvc pull model/model.pkl.dvc -r model-tracker -v
 
       - name: Unprotect model
         run: |
