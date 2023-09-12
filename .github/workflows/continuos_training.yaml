@@ -30,21 +30,30 @@ jobs:
         run: |
           pip install -r src/requirements.txt
 
-      - name: Setup credentials
+      - name: Set up environment for DVC
+        run: |
+          python -m pip install --upgrade pip
+          pip install dvc[gdrive,gs]
+
+      - name: Setup GCP Credentials
         env:
           SERVICE_ACCOUNT_KEY: ${{ secrets.SERVICE_ACCOUNT_KEY }}
         run: |
-          echo "$SERVICE_ACCOUNT_KEY" > path.json
-          export GOOGLE_APPLICATION_CREDENTIALS=path.json
+          echo "$SERVICE_ACCOUNT_KEY" > sa_key.json
+          export GOOGLE_APPLICATION_CREDENTIALS=sa_key.json
 
-      # Uncomment this only if you want to debug
-      # - name: Print credentials (debug)
-      #   run: |
-      #     cat path.json
+      # Test direct GCS access to ensure there are no connection issues
+      - name: Test GCS access with gsutil
+        run: gsutil ls gs://your-bucket-name/
 
       - name: Setup DVC remote
         run: |
-          dvc remote modify model-tracker credentialpath $(pwd)/path.json
+          dvc remote modify model-tracker credentialpath $(pwd)/sa_key.json
+
+      - name: Print DVC Configuration (for debugging)
+        run: |
+          dvc remote list
+          dvc remote show model-tracker
 
       - name: Pull model data with verbose logging
         run: |
@@ -87,3 +96,7 @@ jobs:
           cat report.txt >> report.md
           cml-publish prediction_behavior.png --md >> report.md
           cml-send-comment report.md
+
+      # Clean up credentials after all steps are finished
+      - name: Clean up GCP credentials
+        run: rm sa_key.json
