@@ -17,6 +17,8 @@ jobs:
         run: |
           pip install dvc[gs]
           pip install -r requirements_test.txt
+      - name: Give execute permissions to setter script
+        run: chmod +x utilities/setter.py
       - name: Test API
         run: |
           export GOOGLE_APPLICATION_CREDENTIALS=$(utilities/setter.py)
