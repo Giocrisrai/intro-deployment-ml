@@ -1,6 +1,9 @@
 name: Continuous Training
 
 on:
+  push:
+    branches:
+      - workflow_continuos_training
   workflow_dispatch:
     inputs:
       reason:
