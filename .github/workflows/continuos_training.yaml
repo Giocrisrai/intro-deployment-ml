@@ -1,4 +1,5 @@
 name: Continuous Training
+
 on:
   workflow_dispatch:
     inputs:
@@ -6,6 +7,7 @@ on:
         description: Why to run this?
         required: false
         default: running CT
+
 jobs:
   continuous-training:
     runs-on: ubuntu-latest
@@ -24,25 +26,27 @@ jobs:
           pip3 install virtualenv
           virtualenv venv
           source venv/bin/activate
-          pip install -r requirements/requirements_train.txt
-          pip install -r requirements/requirements_app.txt
+          pip install -r requirements/requirements.txt
           pip install pytest
+          deactivate
       - name: Train model
         env:
           SERVICE_ACCOUNT_KEY: ${{ secrets.SERVICE_ACCOUNT_KEY }}
         run: |
           source venv/bin/activate
           export GOOGLE_APPLICATION_CREDENTIALS=$(python utilities/setter.py)
-          dvc pull model/model.pkl.dvc -r model-track
+          dvc pull model/model.pkl.dvc -r model-tracker
           dvc unprotect model/model.pkl
           dvc repro -f 
           echo "Training Completed"
-          dvc add model/model.pkl -r model-track --to-remote
-          dvc push model/model.pkl.dvc -r model-track
+          dvc add model/model.pkl -r model-tracker --to-remote
+          dvc push model/model.pkl.dvc -r model-tracker
+          deactivate
       - name: Test new model
         run: |
           source venv/bin/activate
           pytest
+          deactivate
       - name: Commit .dvc file changes
         run: |
           git config --local user.email "giocrisrai@gmail.com"
