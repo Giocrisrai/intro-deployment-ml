@@ -1,6 +1,4 @@
 ['remote "dataset-tracker"']
     url = gs://model-dataset-tracker-course/dataset
-    credentialpath = path.json
 ['remote "model-tracker"']
     url = gs://model-dataset-tracker-course/model
-    credentialpath = path.json
