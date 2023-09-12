@@ -11,38 +11,74 @@ on:
         description: Why to run this?
         required: false
         default: runing CT
+
 jobs:
   continuos-training:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2
-      - name: Train model
-        env:
-          SERVICE_ACCOUNT_KEY: ${{ secrets.SERVICE_ACCOUNT_KEY }}
+
+      - name: Setup Python environment
         run: |
           pip3 install virtualenv
           virtualenv venv
           source venv/bin/activate
+
+      - name: Install dependencies
+        run: |
           pip install -r src/requirements.txt
+
+      - name: Setup credentials
+        env:
+          SERVICE_ACCOUNT_KEY: ${{ secrets.SERVICE_ACCOUNT_KEY }}
+        run: |
+          echo "$SERVICE_ACCOUNT_KEY" > path.json
           export GOOGLE_APPLICATION_CREDENTIALS=path.json
+
+      # Uncomment this only if you want to debug
+      # - name: Print credentials (debug)
+      #   run: |
+      #     cat path.json
+
+      - name: Setup DVC remote
+        run: |
+          dvc remote modify model-tracker credentialpath $(pwd)/path.json
+
+      - name: Pull model data
+        run: |
           dvc pull model/model.pkl.dvc -r model-tracker
+
+      - name: Unprotect model
+        run: |
           dvc unprotect model/model.pkl
+
+      - name: Train model
+        run: |
           dvc repro -f
           echo "Training completed"
+
+      - name: Push new model to remote
+        run: |
           dvc add model/model.pkl -r model-tracker --to-remote
           dvc push model/model.pkl.dvc -r model-tracker
+
       - name: Commit .dvc file changes
         run: |
           git config --local user.email 'giocrisrai@gmail.com'
           git config --local user.name 'Giocrisrai[bot]'
           git add model/model.pkl.dvc
           git commit -m "Updating model serialization"
-      - uses: ad-m/github-push-action@master
+
+      - name: Push to GitHub
+        uses: ad-m/github-push-action@master
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           branch: ${{ github.ref }}
-      - uses: iterative/setup-cml@v1
+
+      - name: Setup CML
+        uses: iterative/setup-cml@v1
+
       - name: Push metrics
         env: 
           REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
