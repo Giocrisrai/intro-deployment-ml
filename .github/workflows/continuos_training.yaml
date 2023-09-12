@@ -19,7 +19,7 @@ jobs:
         python-version: ["3.9"]
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v3
         with:
@@ -50,9 +50,9 @@ jobs:
           git config --local user.name "giocrisrai"
           git add model/model.pkl.dvc
           git commit -m "Updating model serialization by GitHub Actions"
-      - uses: ad-m/github-push-action@main
+      - uses: ad-m/github-push-action@master
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ secrets.MY_PERSONAL_ACCESS_TOKEN }}  # Aquí está el cambio
           branch: ${{ github.ref }}
       - uses: iterative/setup-cml@v1
       - name: Push metrics
