@@ -53,7 +53,6 @@ jobs:
           dvc push model/model.pkl.dvc -r model-tracker
           deactivate
 
-
       # Commit and push DVC changes
       - name: Commit .dvc file changes
         run: |
@@ -61,10 +60,12 @@ jobs:
           git config --local user.name "giocrisrai"
           git add model/model.pkl.dvc
           git commit -m "Updating model serialization by GitHub Actions"
+
+      # Push changes using GITHUB_TOKEN
       - name: Push changes
         uses: ad-m/github-push-action@v0.6.0  # Use a fixed version
         with:
-          github_token: ${{ secrets.MY_PERSONAL_ACCESS_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}  # Use the default GitHub token
           branch: ${{ github.ref }}
 
       # Setup and push metrics
