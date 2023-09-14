@@ -41,9 +41,10 @@ jobs:
       - name: Train model
         env:
           SERVICE_ACCOUNT_KEY: ${{ secrets.SERVICE_ACCOUNT_KEY }}
-          GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/gcp-credentials.json
         run: |
+          echo "${{ secrets.SERVICE_ACCOUNT_KEY }}" > gcp-credentials.json
           source venv/bin/activate
+          export GOOGLE_APPLICATION_CREDENTIALS=gcp-credentials.json
           python utilities/setter.py
           dvc pull model/model.pkl.dvc -r model-tracker
           dvc unprotect model/model.pkl
@@ -52,6 +53,7 @@ jobs:
           dvc add model/model.pkl -r model-tracker --to-remote
           dvc push model/model.pkl.dvc -r model-tracker
           deactivate
+
 
       # Commit and push DVC changes
       - name: Commit .dvc file changes
