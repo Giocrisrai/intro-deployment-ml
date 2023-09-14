@@ -61,11 +61,11 @@ jobs:
           git add model/model.pkl.dvc
           git commit -m "Updating model serialization by GitHub Actions"
 
-      # Push changes using GITHUB_TOKEN
+      # Push changes using personal access token
       - name: Push changes
         uses: ad-m/github-push-action@v0.6.0  # Use a fixed version
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}  # Use the default GitHub token
+          github_token: ${{ secrets.MY_PERSONAL_ACCESS_TOKEN }}  # Use your personal access token
           branch: ${{ github.ref }}
 
       # Setup and push metrics
