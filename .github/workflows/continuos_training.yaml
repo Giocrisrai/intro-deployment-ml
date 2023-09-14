@@ -42,10 +42,9 @@ jobs:
         env:
           SERVICE_ACCOUNT_KEY: ${{ secrets.SERVICE_ACCOUNT_KEY }}
         run: |
-          echo "${{ secrets.SERVICE_ACCOUNT_KEY }}" > gcp-credentials.json
           source venv/bin/activate
-          export GOOGLE_APPLICATION_CREDENTIALS=gcp-credentials.json
           python utilities/setter.py
+          export GOOGLE_APPLICATION_CREDENTIALS=path.json  # Make sure this is the correct location
           dvc pull model/model.pkl.dvc -r model-tracker
           dvc unprotect model/model.pkl
           dvc repro -f 
