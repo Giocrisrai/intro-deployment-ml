@@ -73,6 +73,7 @@ jobs:
       - uses: iterative/setup-cml@v1
       - name: Push metrics
         run: |
+          cd ${{ github.workspace }}  # Cambia al directorio raíz del repositorio
           source venv/bin/activate
           cml-publish prediction_behaviour.png --md >> report.md
           cml-send-comment report.md
