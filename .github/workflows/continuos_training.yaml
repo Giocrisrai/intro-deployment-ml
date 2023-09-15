@@ -64,17 +64,15 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           branch: ${{ github.ref }}
 
-      - name: Set CML_TOKEN
-        run: echo "CML_TOKEN=${{ secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV
-
       - name: Convert TXT to MD
         run: cp report.txt report.md
 
-      - uses: iterative/setup-cml@v1
+      - name: List files in workspace
+        run: ls -al ${{ github.workspace }}
+
       - name: Push metrics
         run: |
-          cd ${{ github.workspace }}  # Cambia al directorio raíz del repositorio
           source venv/bin/activate
-          cml-publish prediction_behaviour.png --md >> report.md
+          cml-publish prediction_behavior.png --md >> report.md
           cml-send-comment report.md
           deactivate
