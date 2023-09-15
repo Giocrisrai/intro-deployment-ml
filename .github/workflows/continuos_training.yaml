@@ -71,6 +71,8 @@ jobs:
         run: npm install -g @dvcorg/cml
 
       - name: Push metrics
+        env:
+          REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           source venv/bin/activate
           cml-publish prediction_behavior.png --md >> report.md
