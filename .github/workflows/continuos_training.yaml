@@ -7,49 +7,36 @@ on:
   workflow_dispatch:
     inputs:
       reason:
-        description: Why to run this?
+        description: 'Why to run this?'
         required: false
-        default: running CT
+        default: 'running CT'
 
 jobs:
   continuous-training:
     runs-on: ubuntu-latest
+    container: docker://ghcr.io/iterative/cml:0-dvc2-base1
     permissions:
       contents: write
-    strategy:
-      matrix:
-        python-version: ['3.9']
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2
 
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
-        with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: Install requirements
+      - name: Set up Python
         run: |
-          pip3 install virtualenv
-          virtualenv venv
-          source venv/bin/activate
           pip install -r src/requirements.txt
-          deactivate
 
       - name: Train model
         env:
           SERVICE_ACCOUNT_KEY: ${{ secrets.SERVICE_ACCOUNT_KEY }}
         run: |
-          source venv/bin/activate
           python utilities/setter.py
           export GOOGLE_APPLICATION_CREDENTIALS=path.json
           dvc pull model/model.pkl.dvc -r model-tracker
           dvc unprotect model/model.pkl
-          dvc repro -f 
+          dvc repro -f
           echo "Training Completed"
           dvc add model/model.pkl -r model-tracker --to-remote
           dvc push model/model.pkl.dvc -r model-tracker
-          deactivate
 
       - name: Commit .dvc file changes
         run: |
@@ -64,18 +51,9 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           branch: ${{ github.ref }}
 
-      - name: Convert TXT to MD
-        run: cp report.txt report.md
-
-      - name: Install CML
-        run: npm install -g @dvcorg/cml
-
-      - name: Push metrics
+      - name: Create CML report
+        run: |
+          echo "![inline](./prediction_behavior.png)" >> report.md
+          cml comment create report.md
         env:
           REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          source venv/bin/activate
-          echo "![inline](./prediction_behavior.png)" >> report.md
-          cml-send-comment report.md
-          deactivate
-
