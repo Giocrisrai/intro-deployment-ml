@@ -75,6 +75,7 @@ jobs:
           REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           source venv/bin/activate
-          cml-publish prediction_behavior.png --md >> report.md
+          echo "![inline](./prediction_behavior.png)" >> report.md
           cml-send-comment report.md
           deactivate
+
