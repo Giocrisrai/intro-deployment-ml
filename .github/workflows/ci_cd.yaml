@@ -5,7 +5,7 @@ on:
     branches:
       - main
   workflow_run:
-    ["Continuous Training"]
+    workflows: ["Continuous Training"]
     branches:
       - main
     types:
@@ -16,6 +16,7 @@ on:
         description: 'Why to run this?'
         required: false
         default: 'running CI/CD'
+
 jobs:
   ci_cd:
     runs-on: ubuntu-latest
@@ -57,6 +58,7 @@ jobs:
       - name: Set environment and bring the model
         run: |
           python utilities/setter.py
-          cat path.json  # Debugging step to make sure the path.json file is correct. Remove this in production.
+          # Debugging step to make sure the path.json file is correct. Remove this in production.
+          cat path.json  
           export GOOGLE_APPLICATION_CREDENTIALS=path.json
           dvc pull model/model.pkl.dvc -r model-tracker
