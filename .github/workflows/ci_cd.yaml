@@ -31,14 +31,7 @@ jobs:
         run: |
           pip install dvc[gs]
 
-      - name: Set environment and bring the model
-        run: |
-          python utilities/setter.py
-          echo $SERVICE_ACCOUNT_KEY > path.json
-          export GOOGLE_APPLICATION_CREDENTIALS=path.json
-          dvc pull model/model.pkl.dvc -r model-tracker
-
-      - name: Debug - Show GCloud config
+      - name: Debug - Print GCloud Config
         run: gcloud config list
 
       - name: Set up GCLOUD SDK
@@ -47,12 +40,9 @@ jobs:
           service_account_key: ${{ secrets.SERVICE_ACCOUNT_KEY }}
           project_id: ${{ secrets.PROJECT_ID }}
 
-      - name: Build and Push Docker image
+      - name: Set environment and bring the model
         run: |
-          docker build -t $REGISTRY_NAME:$GITHUB_SHA .
-          gcloud auth configure-docker -q
-          docker push $REGISTRY_NAME:$GITHUB_SHA
-
-      - name: Deploy to Cloud Run
-        run: |
-          gcloud run services update $SERVICE_NAME --region $REGION --image $REGISTRY_NAME:$GITHUB_SHA
+          python utilities/setter.py
+          cat path.json  # Debugging step to make sure the path.json file is correct. Remove this in production.
+          export GOOGLE_APPLICATION_CREDENTIALS=path.json
+          dvc pull model/model.pkl.dvc -r model-tracker
