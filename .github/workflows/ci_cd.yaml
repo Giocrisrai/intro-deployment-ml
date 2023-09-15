@@ -1,5 +1,7 @@
-name: Continuos Integration/Continuos Deployment
+name: Continuous Integration/Continuous Deployment
+
 on: [push]
+
 jobs:
   ci_cd:
     runs-on: ubuntu-latest
@@ -9,27 +11,48 @@ jobs:
       PROJECT_ID: ${{ secrets.PROJECT_ID }}
       SERVICE_NAME: ${{ secrets.SERVICE_NAME }}
       SERVICE_ACCOUNT_KEY: ${{ secrets.SERVICE_ACCOUNT_KEY }}
+
     steps:
-      - name: checkout repo
+      - name: Checkout repo
         uses: actions/checkout@v2
-      - name: Set environment and bring the model
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+
+      - name: Create and activate virtual environment
         run: |
-          pip3 install virtualenv
+          pip install virtualenv
           virtualenv venv
           source venv/bin/activate
+
+      - name: Install DVC and other dependencies
+        run: |
           pip install dvc[gs]
+
+      - name: Set environment and bring the model
+        run: |
+          python utilities/setter.py
+          echo $SERVICE_ACCOUNT_KEY > path.json
           export GOOGLE_APPLICATION_CREDENTIALS=path.json
           dvc pull model/model.pkl.dvc -r model-tracker
+
+      - name: Debug - Show GCloud config
+        run: gcloud config list
+
       - name: Set up GCLOUD SDK
         uses: google-github-actions/setup-gcloud@main
         with: 
           service_account_key: ${{ secrets.SERVICE_ACCOUNT_KEY }}
           project_id: ${{ secrets.PROJECT_ID }}
-      - name: Build and Push
+
+      - name: Build and Push Docker image
         run: |
-          docker build -t $REGISTRY_NAME:$GITHUB_SHA
+          docker build -t $REGISTRY_NAME:$GITHUB_SHA .
           gcloud auth configure-docker -q
-          sudo -u $USER docker push $REGISTRY_NAME:$GITHUB_SHA
+          docker push $REGISTRY_NAME:$GITHUB_SHA
+
       - name: Deploy to Cloud Run
         run: |
           gcloud run services update $SERVICE_NAME --region $REGION --image $REGISTRY_NAME:$GITHUB_SHA
