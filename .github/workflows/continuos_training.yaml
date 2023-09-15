@@ -1,0 +1,58 @@
+name: Continuous Training
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: 'Why to run this?'
+        required: false
+        default: 'running CT'
+
+jobs:
+  continuous-training:
+    runs-on: ubuntu-latest
+    container: docker://ghcr.io/iterative/cml:0-dvc2-base1
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        run: |
+          pip install -r src/requirements.txt
+
+      - name: Train model
+        env:
+          SERVICE_ACCOUNT_KEY: ${{ secrets.SERVICE_ACCOUNT_KEY }}
+        run: |
+          python utilities/setter.py
+          export GOOGLE_APPLICATION_CREDENTIALS=path.json
+          dvc pull model/model.pkl.dvc -r model-tracker
+          dvc unprotect model/model.pkl
+          dvc repro -f
+          echo "Training Completed"
+          dvc add model/model.pkl -r model-tracker --to-remote
+          dvc push model/model.pkl.dvc -r model-tracker
+
+      - name: Commit .dvc file changes
+        run: |
+          git config --local user.email "giocrisrai@gmail.com"
+          git config --local user.name "giocrisrai"
+          git add model/model.pkl.dvc
+          git commit -m "Updating model serialization by GitHub Actions"
+
+      - name: Push changes
+        uses: ad-m/github-push-action@v0.6.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.ref }}
+
+      - name: Create CML report
+        run: |
+          echo "![inline](./prediction_behavior.png)" >> report.md
+          cml comment create report.md
+        env:
+          REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
