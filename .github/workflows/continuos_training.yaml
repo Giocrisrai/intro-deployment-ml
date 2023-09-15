@@ -75,7 +75,7 @@ jobs:
       - name: Push metrics
         run: |
           source venv/bin/activate
-          cml-publish reports/prediction_behaviour.png --md >> reports/report.md
+          cml-publish prediction_behaviour.png --md >> reports/report.md
           cml-send-comment reports/report.md
           deactivate
 
