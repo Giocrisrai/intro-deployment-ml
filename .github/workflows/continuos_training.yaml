@@ -15,22 +15,19 @@ jobs:
   continuous-training:
     runs-on: ubuntu-latest
     permissions:
-      contents: write  # Esto le da permisos de escritura al GITHUB_TOKEN para el contenido del repositorio
+      contents: write
     strategy:
       matrix:
         python-version: ['3.9']
     steps:
-      # Checkout repository
       - name: Checkout repo
-        uses: actions/checkout@v2  # Use a fixed version
+        uses: actions/checkout@v2
 
-      # Setup Python environment
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2  # Use a fixed version
+        uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
 
-      # Install Python dependencies
       - name: Install requirements
         run: |
           pip3 install virtualenv
@@ -39,7 +36,6 @@ jobs:
           pip install -r src/requirements.txt
           deactivate
 
-      # Train the model
       - name: Train model
         env:
           SERVICE_ACCOUNT_KEY: ${{ secrets.SERVICE_ACCOUNT_KEY }}
@@ -55,7 +51,6 @@ jobs:
           dvc push model/model.pkl.dvc -r model-tracker
           deactivate
 
-      # Commit and push DVC changes
       - name: Commit .dvc file changes
         run: |
           git config --local user.email "giocrisrai@gmail.com"
@@ -63,19 +58,19 @@ jobs:
           git add model/model.pkl.dvc
           git commit -m "Updating model serialization by GitHub Actions"
 
-      # Push changes using GITHUB_TOKEN
       - name: Push changes
-        uses: ad-m/github-push-action@v0.6.0  # Use a fixed version
+        uses: ad-m/github-push-action@v0.6.0
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}  # Use the default GitHub token
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           branch: ${{ github.ref }}
 
-      # Setup and push metrics
+      - name: Convert TXT to MD
+        run: cp report.txt report.md
+
       - uses: iterative/setup-cml@v1
       - name: Push metrics
         run: |
           source venv/bin/activate
-          cml-publish prediction_behaviour.png --md >> reports/report.md
-          cml-send-comment reports/report.md
+          cml-publish prediction_behaviour.png --md >> report.md
+          cml-send-comment report.md
           deactivate
-
