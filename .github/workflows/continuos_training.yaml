@@ -64,6 +64,9 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           branch: ${{ github.ref }}
 
+      - name: Set CML_TOKEN
+        run: echo "CML_TOKEN=${{ secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV
+
       - name: Convert TXT to MD
         run: cp report.txt report.md
 
