@@ -67,8 +67,8 @@ jobs:
       - name: Convert TXT to MD
         run: cp report.txt report.md
 
-      - name: List files in workspace
-        run: ls -al ${{ github.workspace }}
+      - name: Install CML
+        run: npm install -g @dvcorg/cml
 
       - name: Push metrics
         run: |
